@@ -1,0 +1,27 @@
+{
+  "name": "kremling-inline",
+  "version": "1.0.0",
+  "main": "src/kremling-inline-loader.js",
+  "author": "tonylefler <tonylefler@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest --watch"
+  },
+  "dependencies": {
+    "@babel/core": "^7.6.0",
+    "@babel/generator": "^7.6.0",
+    "@babel/plugin-syntax-jsx": "^7.2.0",
+    "loader-utils": "^1.2.3",
+    "postcss": "^7.0.18",
+    "sass": "^1.23.0-module.beta.1"
+  },
+  "devDependencies": {
+    "babel-jest": "^24.9.0",
+    "cssnano": "^4.1.10",
+    "jest": "^24.9.0",
+    "kremling-loader": "^1.0.2"
+  },
+  "peerDependencies": {
+    "kremling-loader": "^1"
+  }
+}
