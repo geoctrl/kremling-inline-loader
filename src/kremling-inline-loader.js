@@ -38,7 +38,6 @@ module.exports = function kremlingInlineLoader(source) {
       }
     }
   });
-  console.log(kremlings);
 
   let kremlingNamespace = 'kremling';
   let kremlingNamespaceString = '';

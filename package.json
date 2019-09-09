@@ -1,6 +1,6 @@
 {
   "name": "kremling-inline",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "main": "src/kremling-inline-loader.js",
   "author": "tonylefler <tonylefler@gmail.com>",
   "license": "MIT",
@@ -8,9 +8,6 @@
     "test": "jest --watch"
   },
   "dependencies": {
-    "@babel/core": "^7.6.0",
-    "@babel/generator": "^7.6.0",
-    "@babel/plugin-syntax-jsx": "^7.2.0",
     "loader-utils": "^1.2.3",
     "postcss": "^7.0.18",
     "sass": "^1.23.0-module.beta.1"

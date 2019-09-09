@@ -31,17 +31,9 @@ const otherThing = k\`
 
 const otherThing = \`\${thing}\`;
 
-const thing = { styles: '[kremling="i0"] .a,[kremling="i0"].a {
-  background-color: red;
-  width: 10px;
-  background-img: url("test.jpg");
-}', id: 'i0',  };
+const thing = { styles: '[kremling="i0"] .a,[kremling="i0"].a { background-color: red; width: 10px; background-img: url("test.jpg"); }', id: 'i0',  };
 
-const otherThing = { styles: '[kremling="i1"] .a,[kremling="i1"].a {
-  background-color: \$\{'if test' ? 'red' : 'black'};
-  width: 10px;
-  background-img: url("test.jpg");
-}', id: 'i1',  }`);
+const otherThing = { styles: '[kremling="i1"] .a,[kremling="i1"].a { background-color: \$\{'if test' ? 'red' : 'black'}; width: 10px; background-img: url("test.jpg"); }', id: 'i1',  }`);
     done();
   });
 });
