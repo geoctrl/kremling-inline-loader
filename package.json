@@ -1,6 +1,6 @@
 {
   "name": "kremling-inline-loader",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "src/kremling-inline-loader.js",
   "author": "tonylefler <tonylefler@gmail.com>",
   "license": "MIT",
