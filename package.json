@@ -1,5 +1,5 @@
 {
-  "name": "kremling-inline",
+  "name": "kremling-inline-loader",
   "version": "0.0.1",
   "main": "src/kremling-inline-loader.js",
   "author": "tonylefler <tonylefler@gmail.com>",
