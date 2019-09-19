@@ -8,10 +8,12 @@
     "test": "jest --watch"
   },
   "dependencies": {
+    "@babel/core": "^7.6.0",
+    "@babel/parser": "^7.6.0",
+    "kremling-loader": "^1.0.2",
     "loader-utils": "^1.2.3",
     "postcss": "^7.0.18",
-    "sass": "^1.23.0-module.beta.1",
-    "kremling-loader": "^1.0.2"
+    "sass": "^1.23.0-module.beta.1"
   },
   "devDependencies": {
     "babel-jest": "^24.9.0",

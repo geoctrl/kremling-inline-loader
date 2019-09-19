@@ -1,49 +1,29 @@
 const { getOptions } = require('loader-utils');
 const sass = require('sass');
-const parseKremling = require('./parse-kremling');
-const { runPostCss } = require('./utils');
+const parser = require('@babel/parser');
+const generate = require('@babel/generator').default;
+const postcss = require('postcss/lib/postcss');
+const postcssKremlingPlugin = require('kremling-loader/src/postcss-kremling-plugin');
+const objectExpression = require('./object-expression');
 
+const placeholder = '__KREMLING_PLACEHOLDER__';
 let globalId = 0;
 
 module.exports = function kremlingInlineLoader(source) {
   const loaderOptions = getOptions(this) || {};
-  const kremlings = parseKremling(source);
   const callback = this.async();
 
-  // no kremlings found
-  if (kremlings.length === 0) {
-    return callback(null, source);
-  }
-
-  kremlings.forEach(kremling => {
-    kremling.code = source.slice(kremling.start, kremling.end);
-    kremling.id = `i${globalId}`;
-    globalId += 1;
-    const offset = kremling.start;
-    kremling.placeholders.forEach((placeholder, i) => {
-      placeholder.code = kremling.code.slice(placeholder.start - offset, placeholder.end - offset);
-      placeholder.id = `__kremling_placeholder_${i}__`;
-      kremling.code = `${kremling.code.slice(0, placeholder.start - offset)}${placeholder.id}${kremling.code.slice(placeholder.end - offset)}`;
-    });
-
-    if (loaderOptions.sass) {
-      try {
-        const { data, ...sassOptions } = loaderOptions.sass;
-        kremling.code = sass.renderSync({
-          data: (data || '') + kremling.code,
-          ...sass
-        }).css.toString();
-      } catch (e) {
-        throw Error(e);
-      }
-    }
+  const ats = parser.parse(source, {
+    sourceType: 'module',
+    plugins: [
+      'jsx',
+      'classProperties',
+    ],
   });
 
   let kremlingNamespace = 'kremling';
-  let kremlingNamespaceString = '';
   if (loaderOptions.namespace && typeof loaderOptions.namespace === 'string') {
     kremlingNamespace = loaderOptions.namespace;
-    kremlingNamespaceString = `namespace: '${loaderOptions.namespace}'`;
   }
   const defaultOptions = {
     plugins: {},
@@ -55,29 +35,61 @@ module.exports = function kremlingInlineLoader(source) {
     return require(key)(plugins[key]);
   });
 
-  Promise.all(kremlings.map(kremling => {
-    return runPostCss(kremling.code, pluginsInit, restOfOptions, kremling.id, kremlingNamespace);
-  })).then(results => {
-    let newSource = '';
+  async function findK(next) {
+    if (Array.isArray(next)) {
+      try {
+        next = await Promise.all(next.map(async n => await findK(n)))
+      } catch (e) {}
+    } else if (typeof next === 'object') {
+      if (next.init && next.init.type === 'TaggedTemplateExpression' && next.init.tag && next.init.tag.name === 'k') {
+        const id = globalId;
+        globalId += 1;
 
-    // put code back into source
-    kremlings.forEach((kremling, i) => {
-      const first = i === 0
-        ? source.slice(0, kremling.start - 2)
-        : '';
-      const last = kremlings.length - 1 === i
-        ? source.slice(kremling.end + 1)
-        : source.slice(kremling.end + 1, kremlings[i + 1].start - 2);
-      newSource += `${first}{ styles: '${results[i].replace(/\s+/g, ' ').replace(/'/g, '\'')}', id: '${kremling.id}', ${kremlingNamespaceString} }${last}`;
-    });
+        let evalString = next.init.quasi.quasis.map((item, i) => {
+          return `${item.value.raw}${next.init.quasi.expressions[i] ? placeholder : ''}`;
+        }).join('');
 
-    // replace placeholders
-    kremlings.forEach(kremling => {
-      kremling.placeholders.forEach(placeholder => {
-        newSource = newSource.replace(placeholder.id, placeholder.code);
-      });
-    });
-    callback(null, newSource);
+        if (loaderOptions.sass) {
+          try {
+            const { data, ...sassOptions } = loaderOptions.sass;
+            evalString = sass.renderSync({
+              data: (data || '') + evalString,
+              ...sassOptions
+            }).css.toString();
+          } catch (e) {
+            console.log(e)
+            throw Error(e);
+          }
+        }
+
+        let postCssResult;
+        try {
+          postCssResult = await postcss([...pluginsInit, postcssKremlingPlugin(`i${id}`, kremlingNamespace)])
+            .process(evalString, {
+              ...restOfOptions,
+              to: './',
+              from: './',
+            });
+        } catch (e) {}
+        const pieces = postCssResult.css.split(placeholder);
+        const quasis = next.init.quasi.quasis.map((item, i) => {
+          item.value.raw = item.value.cooked = pieces[i];
+          return item;
+        });
+        next.init = objectExpression(quasis, next.init.quasi.expressions, `i${id}`, kremlingNamespace);
+      } else {
+        try {
+          const keys = Object.keys(next);
+          const list = await Promise.all(keys.map(async key => await findK(next[key])));
+          next = keys.reduce((acc, key, i) => ({ ...acc, [key]: list[i] }), {});
+        } catch (e) {}
+      }
+    }
+    return next;
+  }
+
+  findK(ats).then(res => {
+    const { code } = generate(res, {});
+    callback(null, code);
   });
-};
-
+}
