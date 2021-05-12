@@ -12,7 +12,7 @@
     "@babel/parser": "^7.6.0",
     "kremling-loader": "^1.0.2",
     "loader-utils": "^1.2.3",
-    "postcss": "^7.0.18",
+    "postcss": "^8.2.10",
     "sass": "^1.23.0-module.beta.1"
   },
   "devDependencies": {
